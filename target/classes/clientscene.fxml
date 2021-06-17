@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SplitMenuButton?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.effect.ColorAdjust?>
+<?import javafx.scene.effect.GaussianBlur?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Text?>
+
+<?import javafx.scene.control.MenuButton?>
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.bankapplication.controllers.ClientController">
+   <children>
+      <TableView fx:id="accounts_table" layoutX="164.0" layoutY="60.0" prefHeight="328.0" prefWidth="191.0">
+         <columns>
+            <TableColumn fx:id="title_col" prefWidth="92.0" text="Счет" />
+            <TableColumn fx:id="amount_col" prefWidth="98.0" text=" Остаток" />
+         </columns>
+      </TableView>
+      <SplitPane prefHeight="400.0" prefWidth="146.0">
+         <effect>
+            <ColorAdjust contrast="-0.1" />
+         </effect>
+         <items>
+            <AnchorPane prefHeight="398.0" prefWidth="122.0">
+               <children>
+                  <ImageView fitHeight="50.0" fitWidth="50.0" layoutX="47.0" layoutY="14.0" opacity="0.85" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@avatar.png" />
+                     </image>
+                     <effect>
+                        <GaussianBlur radius="0.0" />
+                     </effect>
+                  </ImageView>
+                  <Text fx:id="username" layoutX="21.0" layoutY="73.0" strokeType="OUTSIDE" strokeWidth="0.0" text="user" textAlignment="CENTER" textOrigin="CENTER" wrappingWidth="102.330078125" />
+                  <Button fx:id="open_btn" layoutX="11.0" layoutY="164.0" mnemonicParsing="false" onAction="#openClick" prefHeight="25.0" prefWidth="122.0" text="Открыть счет" />
+                  <Button fx:id="settings_btn" layoutX="11.0" layoutY="325.0" mnemonicParsing="false" onAction="#settingsClick" prefHeight="25.0" prefWidth="122.0" text="Настройки" />
+                  <Button fx:id="exit_btn" layoutX="11.0" layoutY="359.0" mnemonicParsing="false" onAction="#exitClick" prefHeight="25.0" prefWidth="122.0" text="Выход" />
+                  <Button fx:id="close_btn" layoutX="11.0" layoutY="199.0" mnemonicParsing="false" onAction="#closeClick" prefHeight="25.0" prefWidth="122.0" text="Закрыть счет" />
+                  <Button fx:id="addmoney_btn" layoutX="11.0" layoutY="98.0" mnemonicParsing="false" onAction="#addmoney_click" prefHeight="25.0" prefWidth="122.0" text="Внести средства" />
+                  <Button fx:id="transfer_btn" layoutX="11.0" layoutY="132.0" mnemonicParsing="false" onAction="#transferClick" prefHeight="25.0" prefWidth="122.0" text="Перевод" />
+                  <Button fx:id="update_btn" layoutX="11.0" layoutY="262.0" mnemonicParsing="false" onAction="#update_click" prefHeight="25.0" prefWidth="122.0" text="Обновить данные" />
+               </children>
+            </AnchorPane>
+         </items>
+      </SplitPane>
+      <TableView fx:id="opers_table" layoutX="377.0" layoutY="84.0" prefHeight="304.0" prefWidth="200.0">
+        <columns>
+          <TableColumn fx:id="oper_col" prefWidth="100.0" text="Операция" />
+          <TableColumn fx:id="date_col" prefWidth="99.0" text="Дата" />
+        </columns>
+      </TableView>
+      <MenuButton fx:id="pick_account" layoutX="377.0" layoutY="59.0" mnemonicParsing="false" onAction="#pickaccClick" prefHeight="25.0" prefWidth="200.0" text="Выберите счет">
+        <items>
+          <MenuItem mnemonicParsing="false" text="Action 1" />
+          <MenuItem mnemonicParsing="false" text="Action 2" />
+        </items>
+      </MenuButton>
+   </children>
+</AnchorPane>
