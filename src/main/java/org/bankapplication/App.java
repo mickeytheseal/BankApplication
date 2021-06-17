@@ -12,6 +12,7 @@ import java.net.URL;
 
 
 public class App extends Application {
+    protected Stage stage;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -25,6 +26,7 @@ public class App extends Application {
         stage.setResizable(false);
         stage.setScene(new Scene(root));
         stage.show();
+        this.stage = stage;
     }
 
     public static void main(String[] args) {
