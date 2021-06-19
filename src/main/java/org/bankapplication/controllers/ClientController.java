@@ -3,6 +3,7 @@ package org.bankapplication.controllers;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -12,6 +13,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.bankapplication.DBWorker;
 import org.bankapplication.mappers.AccountMapper;
@@ -22,12 +24,14 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ClientController{
     private final String getAccQuery = "SELECT * FROM Accounts WHERE gov_id = ?";
-    private final String getOpersQuery = "SELECT * FROM AccLog WHERE acc_id IN (:acc_ids) ";
+    private final String getAllOpersQuery = "SELECT * FROM AccLog WHERE acc_id IN (:acc_ids) ";
+    private final String getOpersQuery = "SELECT * FROM AccLog al, Accounts acc WHERE al.acc_id = acc.acc_id and acc_code = ?";
 
     private ObservableList<Account> accountsData = FXCollections.observableArrayList();
     private ObservableList<Operation> opersData = FXCollections.observableArrayList();
@@ -51,6 +55,7 @@ public class ClientController{
 
 
     public void accountsTableInit(){
+        accounts_table.getItems().clear();
         List<Account> accounts = DBWorker.getJdbcTemplate().query(getAccQuery, new AccountMapper(),getGovId());
         accountsData.addAll(accounts);
         title_col.setCellValueFactory(new PropertyValueFactory<Account,String>("acc_code"));
@@ -61,22 +66,11 @@ public class ClientController{
     }
 
     public void opersTableInit(){
-        List<Account> accounts = DBWorker.getJdbcTemplate().query(getAccQuery, new AccountMapper(),getGovId());
-        List<String> acc_codes = accounts.stream()
-                .map(Account::getAcc_code)
-                .collect(Collectors.toList());
-        List<Integer> acc_ids = accounts.stream()
-                .map(Account::getAcc_id)
-                .collect(Collectors.toList());
-        String query_arg = acc_ids.stream()
-                .map(Object::toString)
-                .collect(Collectors.joining(",","(",")"));
-        System.out.println(query_arg);
-
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue("acc_ids", acc_ids);
-
-        opersData.addAll(DBWorker.getNpJdbcTemplate().query(getOpersQuery,parameters, new OperationMapper()));
+        opers_table.getItems().clear();
+        String acc_code;
+        if(pick_account.getText().equals("Выберите счет")){ acc_code = null; }
+        else{ acc_code = pick_account.getText(); }
+        opersData.addAll(DBWorker.getJdbcTemplate().query(getOpersQuery,new OperationMapper(),acc_code));
         oper_col.setCellValueFactory(new PropertyValueFactory<Operation,String>("operation"));
         date_col.setCellValueFactory(new PropertyValueFactory<Operation,String>("entry_date"));
         oper_col.setResizable(false);
@@ -85,26 +79,61 @@ public class ClientController{
     }
 
     public void menuButtonInit(){
+        pick_account.setText("Выберите счет");
+        pick_account.getItems().clear();
         List<Account> accounts = DBWorker.getJdbcTemplate().query(getAccQuery, new AccountMapper(),getGovId());
         List<String> acc_codes = accounts.stream()
                 .map(Account::getAcc_code)
                 .collect(Collectors.toList());
         List<MenuItem> items = acc_codes.stream()
-                .map(Menu::new)
+                .map(MenuItem::new)
                 .collect(Collectors.toList());
+        for (MenuItem item: items) {
+            item.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    pick_account.setText(item.getText());
+                    opersTableInit();
+                }
+            });
+        }
         pick_account.getItems().addAll(items);
     }
 
     public void openClick(ActionEvent event) {
-        System.out.println(Arrays.toString(Account.getAccounts().toArray()));
+        DBWorker.getJdbcTemplate().update("INSERT INTO Accounts VALUES(?,?,GETDATE(),0,0)",getGovId(),generateCode());
+        accountsTableInit();
+        menuButtonInit();
+    }
+
+    private int generateCode(){
+        return (getGovId() + new Date()).hashCode() & 0xfffffff;
+    }
+
+    public void closeClick(ActionEvent event) {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("closeaccscene.fxml"));
+            Parent root = (Parent) fxmlLoader.load();
+            CloseAccContoller closeAccContoller = fxmlLoader.getController();
+            closeAccContoller.menuButtonInit(getGovId());
+            closeAccContoller.setParent(this);
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle("Закрыть счет");
+            stage.getIcons().add(new Image("/icon.png"));
+            stage.setScene(new Scene(root));
+            stage.setResizable(false);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void settingsClick(ActionEvent event) {
     }
 
 
-    public void closeClick(ActionEvent event) {
-    }
+
 
     public void pickaccClick(ActionEvent event) {
     }
@@ -128,15 +157,46 @@ public class ClientController{
     }
 
     public void addmoney_click(ActionEvent event) {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("addmoneyscene.fxml"));
+            Parent root = (Parent) fxmlLoader.load();
+            AddMoneyController addMoneyController = fxmlLoader.getController();
+            addMoneyController.menuButtonInit(getGovId());
+            addMoneyController.setParent(this);
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle("Пополнить счет");
+            stage.getIcons().add(new Image("/icon.png"));
+            stage.setScene(new Scene(root));
+            stage.setResizable(false);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void transferClick(ActionEvent event) {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("transferscene.fxml"));
+            Parent root = (Parent) fxmlLoader.load();
+            TransferController transferController = fxmlLoader.getController();
+            transferController.menuButtonInit(getGovId());
+            transferController.setParent(this);
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle("Перевести средства");
+            stage.getIcons().add(new Image("/icon.png"));
+            stage.setScene(new Scene(root));
+            stage.setResizable(false);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void update_click(ActionEvent event) {
-        accounts_table.getItems().clear();
         accountsTableInit();
-        opers_table.getItems().clear();
+        menuButtonInit();
         opersTableInit();
     }
 
